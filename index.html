@@ -1,486 +1,1105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ContractScan AI — Legal Risk Analysis</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>ContractScan AI — Understand Before You Sign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+/* ── Reset & Base ─────────────────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
---bg:#0a0a08;--bg2:#111110;--bg3:#1a1a17;--bg4:#222220;
---line:#2a2a26;--line2:#3a3a35;
---gold:#c9a84c;--gold2:#e8c878;--gold3:#f5e4b0;--cream:#f0ead8;
---red:#e05252;--red-dim:#3a1a1a;--red-border:#5a2a2a;
---amber:#d4922a;--amber-dim:#2a1e0a;--amber-border:#5a3a0a;
---green:#4a9e6a;--green-dim:#0a2a1a;--green-border:#1a5a2a;
---blue:#4a7ec9;--blue-dim:#0a1a3a;--blue-border:#1a3a6a;
---text:#e8e4d8;--text2:#9a9488;--text3:#5a5650;
---mono:'IBM Plex Mono',monospace;--serif:'Playfair Display',serif;--sans:'Helvetica Neue',Arial,sans-serif;
+  --bg:       #0c0c0f;
+  --surface:  #111116;
+  --surface2: #16161d;
+  --surface3: #1c1c26;
+  --border:   rgba(255,255,255,.06);
+  --border2:  rgba(255,255,255,.10);
+  --border3:  rgba(255,255,255,.16);
+  --text:     #e8e6e0;
+  --text2:    #7a7870;
+  --text3:    #3d3c38;
+  --gold:     #c8a96e;
+  --gold2:    #dfc08a;
+  --gold3:    #f0d8a8;
+  --golddim:  rgba(200,169,110,.08);
+  --red:      #e05555;
+  --reddim:   rgba(224,85,85,.08);
+  --redborder:rgba(224,85,85,.2);
+  --amber:    #d4922a;
+  --amberdim: rgba(212,146,42,.08);
+  --amberborder:rgba(212,146,42,.2);
+  --green:    #4a9e6a;
+  --greendim: rgba(74,158,106,.08);
+  --greenborder:rgba(74,158,106,.2);
+  --blue:     #5b8fe8;
+  --bluedim:  rgba(91,143,232,.08);
+  --blueborder:rgba(91,143,232,.2);
+  --serif:    'Instrument Serif',Georgia,serif;
+  --mono:     'Geist Mono',monospace;
+  --sans:     'Geist','Helvetica Neue',sans-serif;
+  --radius:   10px;
+  --radius-lg:16px;
 }
-html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
-.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
-.page{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:40px 24px 80px}
 
-.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:60px;padding-bottom:20px;border-bottom:1px solid var(--line)}
-.nav-logo-mark{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--cream)}
-.nav-logo-mark span{color:var(--gold);font-style:italic}
-.nav-badge{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text3);border:1px solid var(--line2);padding:3px 8px;border-radius:2px;text-transform:uppercase}
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.6;
+  min-height:100vh;
+  font-weight:300;
+  -webkit-font-smoothing:antialiased;
+}
 
-/* API KEY BANNER */
-.key-banner{background:var(--bg2);border:1px solid var(--amber-border);border-radius:6px;padding:14px 18px;margin-bottom:32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.key-banner-label{font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
-.key-input-wrap{flex:1;display:flex;gap:8px;min-width:200px}
-.key-input{flex:1;padding:7px 12px;background:var(--bg3);border:1px solid var(--line2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;transition:border-color .2s}
-.key-input:focus{border-color:var(--gold)}
-.key-input::placeholder{color:var(--text3)}
-.key-save{padding:7px 14px;background:var(--gold);border:none;border-radius:4px;color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:500;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:background .2s;white-space:nowrap}
-.key-save:hover{background:var(--gold2)}
-.key-status{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:2px}
-.key-status.ok{color:var(--green);background:var(--green-dim);border:1px solid var(--green-border)}
-.key-status.missing{color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber-border)}
-.key-hint{width:100%;font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.04em}
-.key-hint a{color:var(--gold);text-decoration:none}
-.key-hint a:hover{text-decoration:underline}
+/* ── Grain overlay ────────────────────────────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;z-index:0;
+  opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  background-size:180px;
+}
 
-.hero{margin-bottom:52px;animation:fadeUp .6s ease both}
-.hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.hero-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--gold)}
-.hero-title{font-family:var(--serif);font-size:48px;font-weight:400;line-height:1.1;color:var(--cream);margin-bottom:16px;letter-spacing:-1px}
-.hero-title em{font-style:italic;color:var(--gold)}
-.hero-sub{font-size:15px;color:var(--text2);line-height:1.7;max-width:520px}
+/* ── Layout ───────────────────────────────────────────────────────────── */
+.page{
+  position:relative;z-index:1;
+  max-width:860px;
+  margin:0 auto;
+  padding:0 28px 100px;
+}
 
-.stats{display:flex;border:1px solid var(--line);border-radius:4px;margin-bottom:48px;overflow:hidden;animation:fadeUp .6s .1s ease both}
-.stat{flex:1;padding:16px 20px;border-right:1px solid var(--line)}
+/* ── Nav ──────────────────────────────────────────────────────────────── */
+.nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:28px 0 28px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:72px;
+}
+.logo{
+  display:flex;align-items:baseline;gap:3px;
+  font-family:var(--serif);font-size:19px;color:var(--text);
+  letter-spacing:-.3px;
+}
+.logo em{font-style:italic;color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:14px}
+.nav-tag{
+  font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text3);
+  border:1px solid var(--border2);
+  padding:4px 9px;border-radius:4px;
+}
+.nav-scan-count{
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  color:var(--text2);display:flex;align-items:center;gap:5px;
+}
+.dot-live{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 6px var(--green);
+  animation:pulse-dot 2.5s ease infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+.hero{
+  margin-bottom:60px;
+  animation:rise .7s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero-kicker{
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--gold);
+  margin-bottom:22px;display:flex;align-items:center;gap:10px;opacity:.8;
+}
+.hero-kicker::before{content:'';width:28px;height:1px;background:var(--gold);opacity:.5}
+.hero-h1{
+  font-family:var(--serif);font-size:clamp(44px,7vw,68px);
+  font-weight:400;line-height:1.05;letter-spacing:-1.5px;
+  color:var(--text);margin-bottom:22px;
+}
+.hero-h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{
+  font-size:15px;color:var(--text2);line-height:1.75;
+  max-width:540px;font-weight:300;
+}
+
+/* ── Stats strip ──────────────────────────────────────────────────────── */
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;margin-bottom:56px;
+  background:var(--surface);
+  animation:rise .7s .08s cubic-bezier(.16,1,.3,1) both;
+}
+.stat{
+  padding:18px 22px;border-right:1px solid var(--border);
+  position:relative;overflow:hidden;transition:background .2s;
+}
 .stat:last-child{border-right:none}
-.stat-num{font-family:var(--serif);font-size:26px;color:var(--gold2)}
-.stat-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-top:2px}
+.stat::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s ease;
+}
+.stat:hover::after{transform:scaleX(1)}
+.stat:hover{background:var(--surface2)}
+.stat-n{
+  font-family:var(--serif);font-size:26px;color:var(--gold2);
+  line-height:1;margin-bottom:4px;
+}
+.stat-l{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
 
-.upload-section{animation:fadeUp .6s .15s ease both}
-.section-label{font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.section-label::after{content:'';flex:1;height:1px;background:var(--line)}
+/* ── Section label ────────────────────────────────────────────────────── */
+.sec-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--text3);
+  margin-bottom:10px;display:flex;align-items:center;gap:10px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
-.drop-zone{border:1px solid var(--line2);background:var(--bg2);border-radius:6px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px}
-.drop-zone:hover,.drop-zone.drag{border-color:var(--gold);background:rgba(201,168,76,.04)}
-.drop-icon{width:32px;height:32px;margin:0 auto 10px;color:var(--text3)}
-.drop-title{font-size:13px;color:var(--text2);margin-bottom:3px}
-.drop-sub{font-family:var(--mono);font-size:10px;color:var(--text3)}
+/* ── Dropzone ─────────────────────────────────────────────────────────── */
+.dropzone{
+  border:1px dashed var(--border3);
+  background:var(--surface);
+  border-radius:var(--radius-lg);
+  padding:30px;text-align:center;
+  cursor:pointer;transition:all .25s;
+  margin-bottom:14px;position:relative;overflow:hidden;
+}
+.dropzone::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,var(--golddim),transparent 70%);
+  opacity:0;transition:opacity .3s;
+}
+.dropzone:hover::before,.dropzone.drag::before{opacity:1}
+.dropzone:hover,.dropzone.drag{border-color:var(--gold);border-style:solid}
+.dz-icon{
+  width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--border3);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 12px;color:var(--text3);
+  transition:all .25s;position:relative;z-index:1;
+}
+.dropzone:hover .dz-icon,.dropzone.drag .dz-icon{
+  border-color:var(--gold);color:var(--gold);
+}
+.dz-title{font-size:13px;color:var(--text2);margin-bottom:3px;position:relative;z-index:1}
+.dz-sub{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);position:relative;z-index:1}
 
-.ta-wrap{position:relative;margin-bottom:16px}
-textarea{width:100%;min-height:180px;padding:16px;background:var(--bg2);border:1px solid var(--line2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;caret-color:var(--gold)}
-textarea:focus{border-color:var(--gold)}
+/* ── Textarea ─────────────────────────────────────────────────────────── */
+.ta-wrap{position:relative;margin-bottom:6px}
+textarea{
+  width:100%;min-height:196px;
+  padding:16px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  color:var(--text);
+  font-family:var(--mono);font-size:12px;line-height:1.8;
+  resize:vertical;outline:none;
+  transition:border-color .2s;
+  caret-color:var(--gold);
+}
+textarea:focus{border-color:var(--border3)}
 textarea::placeholder{color:var(--text3)}
-.char-pill{position:absolute;bottom:10px;right:12px;font-family:var(--mono);font-size:9px;color:var(--text3)}
+.char-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;
+}
+.char-count{font-family:var(--mono);font-size:9px;color:var(--text3)}
+.char-hint{font-family:var(--mono);font-size:9px;color:var(--text3)}
 
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* ── Config row ───────────────────────────────────────────────────────── */
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.config-group label{
+  display:block;font-family:var(--mono);font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
+  margin-bottom:6px;
+}
 .select-wrap{position:relative}
-select{appearance:none;padding:9px 32px 9px 12px;background:var(--bg3);border:1px solid var(--line2);border-radius:4px;color:var(--text2);font-family:var(--mono);font-size:10px;outline:none;cursor:pointer;transition:border-color .2s}
-select:hover,select:focus{border-color:var(--gold);color:var(--text)}
-.select-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:10px}
+select{
+  appearance:none;width:100%;
+  padding:10px 32px 10px 13px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);
+  color:var(--text2);font-family:var(--sans);font-size:13px;
+  font-weight:300;outline:none;cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+select:hover,select:focus{border-color:var(--border3);color:var(--text)}
+.sel-arrow{
+  position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  color:var(--text3);pointer-events:none;font-size:9px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.btn-row{display:flex;gap:8px;align-items:center}
 .spacer{flex:1}
-.btn-ghost{padding:9px 16px;background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--text3);font-family:var(--mono);font-size:10px;letter-spacing:.08em;cursor:pointer;transition:all .2s;text-transform:uppercase}
-.btn-ghost:hover{color:var(--text);background:var(--bg3)}
-.btn-primary{display:flex;align-items:center;gap:8px;padding:9px 20px;background:var(--gold);border:none;border-radius:4px;color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;cursor:pointer;transition:all .2s;text-transform:uppercase}
-.btn-primary:hover{background:var(--gold2)}
-.btn-primary:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed}
+.btn-ghost{
+  padding:10px 17px;background:transparent;
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text3);font-family:var(--mono);font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;
+}
+.btn-ghost:hover{color:var(--text2);border-color:var(--border2);background:var(--surface)}
+.btn-primary{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 22px;
+  background:var(--gold);border:none;border-radius:var(--radius);
+  color:#0c0c0f;font-family:var(--mono);font-size:10px;
+  font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;transition:all .22s;white-space:nowrap;
+}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(200,169,110,.2)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{background:var(--surface3);color:var(--text3);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-primary svg{transition:transform .2s}
+.btn-primary:not(:disabled):hover svg{transform:translateX(3px)}
+.err{
+  margin-top:12px;padding:12px 16px;
+  background:var(--reddim);border:1px solid var(--redborder);
+  border-radius:var(--radius);
+  font-family:var(--mono);font-size:11px;color:var(--red);line-height:1.5;
+}
+.hidden{display:none!important}
 
-.scan-view{text-align:center;padding:60px 0;animation:fadeUp .4s ease both}
-.scan-ring-wrap{position:relative;width:80px;height:80px;margin:0 auto 24px}
-.scan-ring{width:80px;height:80px;border-radius:50%;border:1px solid var(--line2);border-top-color:var(--gold);animation:spin .9s linear infinite}
-.scan-inner{position:absolute;inset:8px;border-radius:50%;border:1px solid var(--line);border-bottom-color:var(--gold2);animation:spin 1.4s linear infinite reverse}
-.scan-dot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.scan-dot-inner{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse2 1s ease infinite}
-.scan-msg{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
-.scan-progress{width:200px;margin:16px auto 0;height:1px;background:var(--line);overflow:hidden}
-.scan-bar{height:100%;background:var(--gold);width:0%;animation:progress 5s ease forwards}
-
+/* ── Scan view ────────────────────────────────────────────────────────── */
+.scan-view{
+  text-align:center;padding:90px 0;
+  animation:rise .4s ease both;
+}
+.scan-glyph{
+  width:56px;height:56px;margin:0 auto 28px;
+  position:relative;
+}
+.scan-ring{
+  width:56px;height:56px;border-radius:50%;
+  border:1px solid var(--border2);
+  border-top-color:var(--gold);
+  animation:spin .85s linear infinite;
+  position:absolute;inset:0;
+}
+.scan-ring2{
+  width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--border);
+  border-bottom-color:var(--gold2);
+  animation:spin 1.3s linear infinite reverse;
+  position:absolute;top:9px;left:9px;
+}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes pulse2{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
-@keyframes progress{0%{width:0%}80%{width:85%}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.scan-core{
+  width:8px;height:8px;border-radius:50%;background:var(--gold);
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:core-pulse 1s ease infinite;
+}
+@keyframes core-pulse{0%,100%{opacity:1;transform:translate(-50%,-50%) scale(1)}50%{opacity:.4;transform:translate(-50%,-50%) scale(.6)}}
+.scan-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:8px;
+}
+.scan-phase{
+  font-family:var(--serif);font-size:18px;color:var(--text2);
+  font-style:italic;min-height:28px;transition:opacity .3s;
+}
+.scan-bar-wrap{
+  width:220px;height:1px;background:var(--border);
+  margin:22px auto 0;overflow:hidden;border-radius:1px;
+}
+.scan-bar{
+  height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));
+  width:0;animation:prog 9s ease forwards;
+}
+@keyframes prog{0%{width:0}90%{width:88%}}
 
-.results-view{animation:fadeUp .5s ease both}
-.risk-header{display:flex;align-items:stretch;margin-bottom:36px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.score-block{padding:24px 28px;background:var(--bg2);border-right:1px solid var(--line);min-width:140px;display:flex;flex-direction:column;justify-content:center}
-.score-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
-.score-num{font-family:var(--serif);font-size:64px;line-height:1;font-weight:700}
-.score-denom{font-family:var(--mono);font-size:12px;color:var(--text3);margin-top:2px}
-.score-num.danger{color:var(--red)}.score-num.warning{color:var(--amber)}.score-num.safe{color:var(--green)}
-.verdict-block{flex:1;padding:24px 28px;display:flex;flex-direction:column;justify-content:space-between}
-.verdict-text{font-family:var(--serif);font-size:22px;color:var(--cream);line-height:1.3;margin-bottom:8px}
-.verdict-sub{font-size:12px;color:var(--text2);margin-bottom:16px}
-.risk-meter-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.08em;margin-bottom:6px}
-.risk-meter-track{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
-.risk-meter-fill{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
-.tags-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
-.tag{font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:2px;border:1px solid var(--line2);color:var(--text3);letter-spacing:.06em;text-transform:uppercase}
+/* ── Results ──────────────────────────────────────────────────────────── */
+.results-view{animation:rise .5s ease both}
 
-.r-section{margin-bottom:36px}
-.r-title{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
-.r-title::after{content:'';flex:1;height:1px;background:var(--line)}
-.summary-card{background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:20px 22px;border-left:3px solid var(--gold)}
-.summary-text{font-size:13px;color:var(--text2);line-height:1.75}
+/* Score banner */
+.score-banner{
+  display:grid;grid-template-columns:148px 1fr;
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  overflow:hidden;margin-bottom:44px;
+  background:var(--surface);
+}
+.score-col{
+  padding:28px 26px;background:var(--surface2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;justify-content:center;
+}
+.score-eyebrow{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.score-num{font-family:var(--serif);font-size:72px;font-weight:400;line-height:1}
+.score-num.danger{color:var(--red)}
+.score-num.warn{color:var(--amber)}
+.score-num.safe{color:var(--green)}
+.score-denom{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px}
 
-.flags{display:flex;flex-direction:column;gap:10px}
-.flag{border-radius:6px;padding:16px 18px;border:1px solid;animation:slideIn .4s ease both;transition:transform .15s}
+.verdict-col{padding:26px 30px;display:flex;flex-direction:column;justify-content:space-between;gap:16px}
+.verdict-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.verdict-type{
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text3);
+  border:1px solid var(--border);padding:3px 9px;border-radius:3px;
+}
+.verdict-persp{font-family:var(--mono);font-size:9px;color:var(--text3)}
+.verdict-text{font-family:var(--serif);font-size:26px;color:var(--text);line-height:1.2;font-weight:400}
+.verdict-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.vtag{
+  font-family:var(--mono);font-size:8px;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 8px;border-radius:3px;
+  border:1px solid var(--border2);color:var(--text3);
+}
+.meter-group{padding-top:4px}
+.meter-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.06em;margin-bottom:6px}
+.meter-track{height:2px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.meter-fill{height:100%;border-radius:2px;transition:width 1.5s cubic-bezier(.16,1,.3,1)}
+
+/* Result sections */
+.r-sec{margin-bottom:44px}
+.r-head{
+  font-family:var(--mono);font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--gold);
+  margin-bottom:18px;display:flex;align-items:center;gap:12px;opacity:.75;
+}
+.r-head::after{content:'';flex:1;height:1px;background:var(--border)}
+.r-badge{
+  background:var(--golddim);border:1px solid rgba(200,169,110,.2);
+  color:var(--gold);padding:2px 8px;border-radius:3px;
+  font-size:8px;letter-spacing:.06em;font-weight:400;opacity:1;
+}
+
+/* Summary */
+.summary-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:2px solid var(--gold);
+  border-radius:0 var(--radius) var(--radius) 0;
+  padding:20px 22px;
+}
+.summary-text{
+  font-family:var(--serif);font-size:16px;color:var(--text2);
+  line-height:1.85;font-weight:400;
+}
+
+/* Flags */
+.flags-list{display:flex;flex-direction:column;gap:8px}
+.flag{
+  border:1px solid;border-radius:var(--radius);
+  padding:16px 18px;cursor:default;
+  animation:slideup .35s ease both;
+  transition:transform .15s;position:relative;overflow:hidden;
+}
+.flag::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+}
 .flag:hover{transform:translateX(3px)}
-.flag.high{background:var(--red-dim);border-color:var(--red-border)}
-.flag.medium{background:var(--amber-dim);border-color:var(--amber-border)}
-.flag.low{background:var(--green-dim);border-color:var(--green-border)}
-.flag.info{background:var(--blue-dim);border-color:var(--blue-border)}
-.flag-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-.sev-pill{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;font-weight:500}
-.flag.high .sev-pill{background:rgba(224,82,82,.15);color:var(--red);border:1px solid var(--red-border)}
-.flag.medium .sev-pill{background:rgba(212,146,42,.12);color:var(--amber);border:1px solid var(--amber-border)}
-.flag.low .sev-pill{background:rgba(74,158,106,.12);color:var(--green);border:1px solid var(--green-border)}
-.flag.info .sev-pill{background:rgba(74,126,201,.12);color:var(--blue);border:1px solid var(--blue-border)}
-.flag-title-text{font-size:13px;font-weight:500;color:var(--cream)}
-.flag-clause{font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:auto}
-.flag-desc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px}
-.flag-action{font-family:var(--mono);font-size:10px;line-height:1.5}
-.flag.high .flag-action{color:var(--red)}.flag.medium .flag-action{color:var(--amber)}.flag.low .flag-action{color:var(--green)}.flag.info .flag-action{color:var(--blue)}
+@keyframes slideup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.flag.high{background:var(--reddim);border-color:var(--redborder)}
+.flag.high::before{background:var(--red)}
+.flag.medium{background:var(--amberdim);border-color:var(--amberborder)}
+.flag.medium::before{background:var(--amber)}
+.flag.low{background:var(--greendim);border-color:var(--greenborder)}
+.flag.low::before{background:var(--green)}
+.flag.info{background:var(--bluedim);border-color:var(--blueborder)}
+.flag.info::before{background:var(--blue)}
+.flag-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.sev{
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 8px;border-radius:3px;
+  font-weight:500;border:1px solid;
+}
+.flag.high   .sev{color:var(--red);  border-color:var(--redborder);  background:rgba(224,85,85,.1)}
+.flag.medium .sev{color:var(--amber);border-color:var(--amberborder);background:rgba(212,146,42,.1)}
+.flag.low    .sev{color:var(--green);border-color:var(--greenborder);background:rgba(74,158,106,.1)}
+.flag.info   .sev{color:var(--blue); border-color:var(--blueborder); background:rgba(91,143,232,.1)}
+.flag-title{font-size:13px;font-weight:500;color:var(--text)}
+.flag-clause{font-family:var(--mono);font-size:8px;color:var(--text3);margin-left:auto;letter-spacing:.05em}
+.flag-desc{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:8px}
+.flag-action{
+  font-family:var(--mono);font-size:10px;line-height:1.5;
+  padding-top:8px;border-top:1px solid;
+}
+.flag.high   .flag-action{color:var(--red);  border-color:var(--redborder)}
+.flag.medium .flag-action{color:var(--amber);border-color:var(--amberborder)}
+.flag.low    .flag-action{color:var(--green);border-color:var(--greenborder)}
+.flag.info   .flag-action{color:var(--blue); border-color:var(--blueborder)}
 
-.neg-list{display:flex;flex-direction:column;gap:8px}
-.neg-item{display:flex;gap:12px;padding:12px 16px;background:var(--bg2);border:1px solid var(--line);border-radius:4px;transition:border-color .2s}
-.neg-item:hover{border-color:var(--line2)}
-.neg-num{font-family:var(--serif);font-size:18px;color:var(--gold3);opacity:.4;line-height:1;flex-shrink:0;min-width:20px}
-.neg-text{font-size:12px;color:var(--text2);line-height:1.65}
+/* Negotiation */
+.neg-list{display:flex;flex-direction:column;gap:6px}
+.neg-item{
+  display:flex;gap:16px;padding:14px 18px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);transition:all .2s;cursor:default;
+}
+.neg-item:hover{border-color:var(--border2);background:var(--surface2)}
+.neg-num{
+  font-family:var(--serif);font-size:22px;color:var(--gold3);
+  opacity:.25;line-height:1.1;flex-shrink:0;width:24px;font-style:italic;
+}
+.neg-text{font-size:13px;color:var(--text2);line-height:1.7;font-weight:300}
 
-.result-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:24px;border-top:1px solid var(--line)}
-.btn-action{display:flex;align-items:center;gap:6px;padding:10px 18px;background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--text2);font-family:var(--mono);font-size:10px;letter-spacing:.08em;cursor:pointer;transition:all .2s;text-transform:uppercase}
-.btn-action:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.04)}
-.btn-action-primary{background:rgba(201,168,76,.08);border-color:var(--gold);color:var(--gold)}
-.btn-action-primary:hover{background:rgba(201,168,76,.15)}
+/* Actions */
+.res-actions{
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding-top:28px;border-top:1px solid var(--border);margin-top:8px;
+}
+.btn-act{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 18px;background:transparent;
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text3);font-family:var(--mono);font-size:9px;
+  letter-spacing:.09em;text-transform:uppercase;cursor:pointer;transition:all .2s;
+}
+.btn-act:hover{border-color:var(--border2);color:var(--text2);background:var(--surface)}
+.btn-act.gold{
+  background:var(--golddim);border-color:rgba(200,169,110,.2);color:var(--gold);
+}
+.btn-act.gold:hover{background:rgba(200,169,110,.14)}
 
-.footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-.footer-note{font-family:var(--mono);font-size:9px;color:var(--text3)}
-.footer-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;animation:pulse2 2s ease infinite}
+/* ── Paywall overlay ──────────────────────────────────────────────────── */
+.paywall-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(12,12,15,.92);
+  backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  animation:fadein .3s ease;
+}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.paywall-card{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:20px;padding:44px 44px 40px;
+  max-width:460px;width:100%;text-align:center;
+  position:relative;overflow:hidden;
+}
+.paywall-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.paywall-icon{
+  width:52px;height:52px;border-radius:50%;
+  border:1px solid rgba(200,169,110,.2);
+  background:var(--golddim);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 22px;color:var(--gold);
+}
+.paywall-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold);border:1px solid rgba(200,169,110,.2);
+  background:var(--golddim);padding:4px 10px;border-radius:4px;
+  margin-bottom:18px;
+}
+.paywall-h{font-family:var(--serif);font-size:28px;color:var(--text);margin-bottom:12px;line-height:1.2}
+.paywall-sub{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:30px;font-weight:300}
+.paywall-plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.plan{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 14px;text-align:left;
+  transition:border-color .2s;cursor:pointer;
+}
+.plan:hover{border-color:var(--border2)}
+.plan.featured{border-color:rgba(200,169,110,.3);background:var(--golddim)}
+.plan-name{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.plan-price{font-family:var(--serif);font-size:24px;color:var(--text);margin-bottom:4px}
+.plan-price span{font-size:12px;font-family:var(--sans);color:var(--text2);font-weight:300}
+.plan-features{list-style:none;margin-top:10px}
+.plan-features li{font-size:11px;color:var(--text2);padding:2px 0;display:flex;align-items:center;gap:6px;font-weight:300}
+.plan-features li::before{content:'✓';color:var(--gold);font-size:10px}
+.btn-upgrade{
+  width:100%;padding:13px;background:var(--gold);border:none;
+  border-radius:var(--radius);color:#0c0c0f;
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  transition:all .2s;margin-bottom:12px;
+}
+.btn-upgrade:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(200,169,110,.2)}
+.paywall-dismiss{
+  font-family:var(--mono);font-size:9px;color:var(--text3);
+  cursor:pointer;letter-spacing:.06em;transition:color .2s;
+  background:none;border:none;text-decoration:underline;text-underline-offset:3px;
+}
+.paywall-dismiss:hover{color:var(--text2)}
 
-.err{margin-top:12px;padding:12px 16px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:4px;font-family:var(--mono);font-size:11px;color:var(--red)}
-.hidden{display:none}
+/* ── Footer ───────────────────────────────────────────────────────────── */
+.footer{
+  margin-top:72px;padding-top:22px;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+}
+.footer-l{font-family:var(--mono);font-size:9px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.footer-r{font-family:var(--mono);font-size:9px;color:var(--text3)}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media(max-width:640px){
+  .stats{grid-template-columns:1fr 1fr}
+  .stat:nth-child(2){border-right:none}
+  .stat:nth-child(3){border-top:1px solid var(--border)}
+  .config-grid{grid-template-columns:1fr}
+  .score-banner{grid-template-columns:1fr}
+  .score-col{border-right:none;border-bottom:1px solid var(--border)}
+  .hero-h1{font-size:38px}
+  .paywall-plans{grid-template-columns:1fr}
+  .paywall-card{padding:32px 24px 28px}
+}
 </style>
 </head>
 <body>
-<div class="noise"></div>
 <div class="page">
 
+  <!-- NAV -->
   <nav class="nav">
-    <div class="nav-logo-mark">Contract<span>Scan</span></div>
-    <span class="nav-badge">Powered by Groq · Free</span>
+    <div class="logo">Contract<em>Scan</em></div>
+    <div class="nav-right">
+      <div class="nav-scan-count">
+        <div class="dot-live"></div>
+        <span id="scanCountDisplay">3 free scans left</span>
+      </div>
+      <div class="nav-tag">Beta</div>
+    </div>
   </nav>
 
-  <!-- API KEY BANNER -->
-  <div class="key-banner" id="keyBanner">
-    <span class="key-banner-label">Groq API Key</span>
-    <div class="key-input-wrap">
-      <input class="key-input" type="password" id="keyInput" placeholder="gskxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-      <button class="key-save" onclick="saveKey()">Save Key</button>
-    </div>
-    <span class="key-status missing" id="keyStatus">Not set</span>
-    <div class="key-hint">
-      Free API key → <a href="https://console.groq.com" target="_blank">console.groq.com</a> · Sign up · API Keys · Create Key · Paste above
-    </div>
-  </div>
-
+  <!-- HERO -->
   <div class="hero">
-    <div class="hero-eyebrow">AI-Powered Legal Risk Analysis</div>
-    <h1 class="hero-title">Know what you're<br>signing <em>before</em> you sign it.</h1>
-    <p class="hero-sub">Paste any contract. Get a risk score, plain-English summary, and specific negotiation points in under 30 seconds — no lawyer required.</p>
+    <div class="hero-kicker">AI-Powered Legal Risk Analysis</div>
+    <h1 class="hero-h1">Understand what<br>you're signing <em>before</em><br>you sign it.</h1>
+    <p class="hero-sub">Paste any contract and get a risk score, plain-English summary, flagged clauses, and negotiation points — in under 30 seconds. No lawyer required.</p>
   </div>
 
+  <!-- STATS -->
   <div class="stats">
-    <div class="stat"><div class="stat-num">94%</div><div class="stat-label">Risk detection rate</div></div>
-    <div class="stat"><div class="stat-num">&lt;30s</div><div class="stat-label">Analysis time</div></div>
-    <div class="stat"><div class="stat-num">12+</div><div class="stat-label">Contract types</div></div>
-    <div class="stat"><div class="stat-num">Free</div><div class="stat-label">To try today</div></div>
+    <div class="stat">
+      <div class="stat-n">94%</div>
+      <div class="stat-l">Detection rate</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">&lt;30s</div>
+      <div class="stat-l">Analysis time</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">14+</div>
+      <div class="stat-l">Contract types</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" id="totalScansDisplay">0</div>
+      <div class="stat-l">Scans today</div>
+    </div>
   </div>
 
-  <div id="inputView" class="upload-section">
-    <div class="section-label">Step 1 — Upload or paste your contract</div>
-    <div class="drop-zone" id="dropZone"
+  <!-- INPUT VIEW -->
+  <div id="inputView">
+    <div class="sec-label">Upload or paste your contract</div>
+    <div class="dropzone" id="dropZone"
       onclick="document.getElementById('fileIn').click()"
-      ondragover="onDrag(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-      <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-        <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-      </svg>
-      <div class="drop-title">Drop .txt or .pdf here</div>
-      <div class="drop-sub">click to browse files</div>
+      ondragover="onDrag(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
       <input type="file" id="fileIn" accept=".txt,.pdf" style="display:none" onchange="onFile(event)">
+      <div class="dz-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="dz-title">Drop a .txt or .pdf file here</div>
+      <div class="dz-sub">or click to browse files</div>
     </div>
 
-    <div class="section-label" style="margin-top:16px">Or paste contract text</div>
+    <div class="sec-label" style="margin-top:6px">Or paste contract text directly</div>
     <div class="ta-wrap">
-      <textarea id="ct" placeholder="Paste NDA, employment agreement, SaaS terms, service contract, lease, or any legal document…" oninput="onInput()"></textarea>
-      <div class="char-pill" id="charPill">0 chars</div>
+      <textarea id="ct"
+        placeholder="Paste any NDA, employment contract, SaaS terms, service agreement, lease, IP assignment, or other legal document…"
+        oninput="onInput()"></textarea>
+    </div>
+    <div class="char-row">
+      <div class="char-count" id="charCount">0 characters</div>
+      <div class="char-hint">Min 100 · Max 30,000</div>
     </div>
 
-    <div class="section-label">Step 2 — Configure analysis</div>
-    <div class="controls">
-      <div class="select-wrap">
-        <select id="ctype">
-          <option value="auto">Auto-detect type</option>
-          <option value="nda">NDA</option>
-          <option value="employment">Employment agreement</option>
-          <option value="saas">SaaS / software</option>
-          <option value="service">Service contract</option>
-          <option value="lease">Lease</option>
-          <option value="partnership">Partnership / JV</option>
-          <option value="vendor">Vendor agreement</option>
-        </select>
-        <span class="select-arrow">▾</span>
+    <div class="sec-label">Configure analysis</div>
+    <div class="config-grid">
+      <div class="config-group">
+        <label for="ctype">Contract type</label>
+        <div class="select-wrap">
+          <select id="ctype">
+            <option value="auto">Auto-detect</option>
+            <option value="nda">NDA / Confidentiality</option>
+            <option value="employment">Employment agreement</option>
+            <option value="saas">SaaS / Software license</option>
+            <option value="service">Service / Consulting</option>
+            <option value="lease">Lease / Real estate</option>
+            <option value="partnership">Partnership / JV</option>
+            <option value="vendor">Vendor / Supplier</option>
+            <option value="ip">IP Assignment</option>
+            <option value="loan">Loan / Financing</option>
+            <option value="franchise">Franchise</option>
+            <option value="settlement">Settlement</option>
+          </select>
+          <span class="sel-arrow">▾</span>
+        </div>
       </div>
-      <div class="select-wrap">
-        <select id="persp">
-          <option value="recipient">I am signing this</option>
-          <option value="sender">I am issuing this</option>
-        </select>
-        <span class="select-arrow">▾</span>
+      <div class="config-group">
+        <label for="persp">Your role</label>
+        <div class="select-wrap">
+          <select id="persp">
+            <option value="recipient">I am signing this</option>
+            <option value="sender">I am issuing this</option>
+          </select>
+          <span class="sel-arrow">▾</span>
+        </div>
       </div>
+    </div>
+
+    <div class="btn-row">
       <div class="spacer"></div>
-      <button class="btn-ghost" onclick="loadDemo()">Load Demo</button>
+      <button class="btn-ghost" onclick="loadDemo()">Load demo</button>
       <button class="btn-primary" id="analyzeBtn" onclick="analyze()">
-        Analyze Contract
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10m-4-4 4 4-4 4"/></svg>
+        Analyze contract
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10m-4-4 4 4-4 4"/></svg>
       </button>
     </div>
     <div id="errBox" class="err hidden"></div>
   </div>
 
+  <!-- SCAN VIEW -->
   <div id="scanView" class="scan-view hidden">
-    <div class="scan-ring-wrap">
+    <div class="scan-glyph">
       <div class="scan-ring"></div>
-      <div class="scan-inner"></div>
-      <div class="scan-dot"><div class="scan-dot-inner"></div></div>
+      <div class="scan-ring2"></div>
+      <div class="scan-core"></div>
     </div>
-    <div class="scan-msg" id="scanMsg">Initializing analysis…</div>
-    <div class="scan-progress"><div class="scan-bar"></div></div>
+    <div class="scan-label">Analyzing contract</div>
+    <div class="scan-phase" id="scanPhase">Reading contract structure…</div>
+    <div class="scan-bar-wrap"><div class="scan-bar"></div></div>
   </div>
 
+  <!-- RESULTS VIEW -->
   <div id="resultsView" class="results-view hidden">
-    <div class="risk-header" id="riskHeader"></div>
-    <div class="r-section">
-      <div class="r-title">Plain-English Summary</div>
-      <div class="summary-card"><p class="summary-text" id="summaryP"></p></div>
+
+    <div class="score-banner">
+      <div class="score-col">
+        <div class="score-eyebrow">Risk score</div>
+        <div class="score-num" id="scoreNum">--</div>
+        <div class="score-denom">out of 100</div>
+      </div>
+      <div class="verdict-col">
+        <div class="verdict-meta">
+          <span class="verdict-type" id="verdictType"></span>
+          <span class="verdict-persp" id="verdictPersp"></span>
+        </div>
+        <div class="verdict-text" id="verdictText"></div>
+        <div>
+          <div class="meter-group">
+            <div class="meter-labels">
+              <span>High risk</span><span>Neutral</span><span>Favorable</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill" id="meterFill" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="verdict-tags" id="verdictTags"></div>
+        </div>
+      </div>
     </div>
-    <div class="r-section">
-      <div class="r-title">Risk Flags <span id="flagCount" style="font-family:var(--mono);font-size:9px;color:var(--text3);font-weight:400;margin-left:4px"></span></div>
-      <div class="flags" id="flagsWrap"></div>
+
+    <div class="r-sec">
+      <div class="r-head">Plain-English summary</div>
+      <div class="summary-card">
+        <p class="summary-text" id="summaryText"></p>
+      </div>
     </div>
-    <div class="r-section">
-      <div class="r-title">Negotiation Points</div>
-      <div class="neg-list" id="negWrap"></div>
+
+    <div class="r-sec">
+      <div class="r-head">Risk flags <span class="r-badge" id="flagsBadge"></span></div>
+      <div class="flags-list" id="flagsList"></div>
     </div>
-    <div class="result-actions">
-      <button class="btn-action" onclick="reset()">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 0112 0H12a4 4 0 10-1.17 2.83l1.42 1.42"/></svg>
+
+    <div class="r-sec">
+      <div class="r-head">Negotiation points</div>
+      <div class="neg-list" id="negList"></div>
+    </div>
+
+    <div class="res-actions">
+      <button class="btn-act" onclick="goBack()">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
         New analysis
       </button>
-      <button class="btn-action btn-action-primary" onclick="alert('Add your backend to enable this!')">Draft counter-proposal ↗</button>
-      <button class="btn-action btn-action-primary" onclick="alert('Add your backend to enable this!')">Lawyer prep checklist ↗</button>
+      <button class="btn-act gold" onclick="copyReport()">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="5" width="9" height="9" rx="1"/><path d="M11 5V3a1 1 0 00-1-1H3a1 1 0 00-1 1v7a1 1 0 001 1h2"/></svg>
+        Copy report
+      </button>
     </div>
   </div>
 
   <div class="footer">
-    <div class="footer-note"><span class="footer-dot"></span>AI analysis — not legal advice. Always consult a qualified attorney.</div>
-    <div class="footer-note">ContractScan &copy; 2025</div>
+    <div class="footer-l">
+      <div class="dot-live"></div>
+      AI analysis only — not legal advice. Always consult a qualified attorney.
+    </div>
+    <div class="footer-r">ContractScan AI © 2025</div>
   </div>
-
 </div>
+
+<!-- PAYWALL OVERLAY -->
+<div class="paywall-overlay hidden" id="paywallOverlay">
+  <div class="paywall-card">
+    <div class="paywall-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+    </div>
+    <div class="paywall-badge">
+      <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><polygon points="4,0 8,8 0,8"/></svg>
+      3 free scans used
+    </div>
+    <h2 class="paywall-h">You've hit your free limit.</h2>
+    <p class="paywall-sub">Upgrade to Pro for unlimited contract scans, the full negotiation playbook, PDF export, and scan history.</p>
+    <div class="paywall-plans">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0 <span>/ mo</span></div>
+        <ul class="plan-features">
+          <li>3 scans / month</li>
+          <li>Risk score + summary</li>
+          <li>Up to 3 flags</li>
+        </ul>
+      </div>
+      <div class="plan featured">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$19 <span>/ mo</span></div>
+        <ul class="plan-features">
+          <li>Unlimited scans</li>
+          <li>Full flag analysis</li>
+          <li>Negotiation playbook</li>
+          <li>PDF export</li>
+          <li>Scan history</li>
+          <li>API access</li>
+        </ul>
+      </div>
+    </div>
+    <button class="btn-upgrade" onclick="handleUpgrade()">Upgrade to Pro — $19/mo</button>
+    <button class="paywall-dismiss" onclick="dismissPaywall()">Maybe later</button>
+  </div>
+</div>
+
 <script>
-// ── API KEY MANAGEMENT ──────────────────────────────────────────────
-function saveKey(){
-  const k=document.getElementById('keyInput').value.trim();
-  if(!k){showErr('Please enter a Groq API key.');return}
-  localStorage.setItem('groq_key',k);
-  updateKeyStatus(k);
+// ── State ────────────────────────────────────────────────────────────────
+const FREE_LIMIT = 3;
+let scansUsed = parseInt(localStorage.getItem('cs_scans') || '0');
+let totalScans = parseInt(localStorage.getItem('cs_total') || '0');
+let lastResult = null;
+
+const MSGS = [
+  'Reading contract structure…',
+  'Identifying key clauses…',
+  'Scoring risk factors…',
+  'Detecting unfavorable terms…',
+  'Checking for missing protections…',
+  'Preparing negotiation points…',
+  'Finalizing report…'
+];
+
+// ── Init ─────────────────────────────────────────────────────────────────
+updateScanCountDisplay();
+updateTotalDisplay();
+
+function updateScanCountDisplay() {
+  const left = Math.max(0, FREE_LIMIT - scansUsed);
+  const el = document.getElementById('scanCountDisplay');
+  if (scansUsed >= FREE_LIMIT) {
+    el.textContent = 'Free limit reached';
+    el.style.color = 'var(--red)';
+  } else {
+    el.textContent = left + ' free scan' + (left === 1 ? '' : 's') + ' left';
+  }
 }
-function updateKeyStatus(k){
-  const s=document.getElementById('keyStatus');
-  if(k){s.textContent='Key saved';s.className='key-status ok'}
-  else{s.textContent='Not set';s.className='key-status missing'}
+function updateTotalDisplay() {
+  document.getElementById('totalScansDisplay').textContent = totalScans;
 }
-function getKey(){return localStorage.getItem('groq_key')||''}
 
-window.addEventListener('load',()=>{
-  const k=getKey();
-  if(k){document.getElementById('keyInput').value=k;updateKeyStatus(k)}
-});
-
-// ── SCAN MESSAGES ───────────────────────────────────────────────────
-const MSGS=['Reading contract structure…','Identifying key clauses…','Scoring risk factors…','Detecting unfavorable terms…','Preparing negotiation tips…','Finalizing report…'];
-let scanTick;
-
-// ── FILE / TEXT INPUT ───────────────────────────────────────────────
-function onInput(){
-  document.getElementById('charPill').textContent=document.getElementById('ct').value.length.toLocaleString()+' chars';
+// ── Tabs / views ─────────────────────────────────────────────────────────
+function show(id) {
+  ['inputView','scanView','resultsView'].forEach(v =>
+    document.getElementById(v).classList.toggle('hidden', v !== id));
 }
-function onDrag(e){e.preventDefault();document.getElementById('dropZone').classList.add('drag')}
-function onDragLeave(){document.getElementById('dropZone').classList.remove('drag')}
-function onDrop(e){e.preventDefault();onDragLeave();const f=e.dataTransfer.files[0];if(f)readF(f)}
-function onFile(e){readF(e.target.files[0])}
-function readF(f){const r=new FileReader();r.onload=e=>{document.getElementById('ct').value=e.target.result;onInput()};r.readAsText(f)}
-function show(id){['inputView','scanView','resultsView'].forEach(v=>document.getElementById(v).classList.toggle('hidden',v!==id))}
+function goBack() {
+  show('inputView');
+  document.getElementById('analyzeBtn').disabled = false;
+}
 
-function loadDemo(){
-  document.getElementById('ct').value=`SERVICE AGREEMENT
+// ── Input handlers ───────────────────────────────────────────────────────
+function onInput() {
+  const n = document.getElementById('ct').value.length;
+  document.getElementById('charCount').textContent = n.toLocaleString() + ' characters';
+}
+function onDrag(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('drag'); }
+function onDragLeave() { document.getElementById('dropZone').classList.remove('drag'); }
+function onDrop(e) {
+  e.preventDefault(); onDragLeave();
+  const f = e.dataTransfer.files[0];
+  if (f) readFile(f);
+}
+function onFile(e) { readFile(e.target.files[0]); }
+function readFile(f) {
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => { document.getElementById('ct').value = e.target.result; onInput(); };
+  r.readAsText(f);
+}
 
-This Service Agreement is entered into as of January 1, 2025, between Acme Corp ("Client") and Contractor ("Service Provider").
+function showErr(m) {
+  const b = document.getElementById('errBox');
+  b.textContent = m; b.classList.remove('hidden');
+}
+function hideErr() { document.getElementById('errBox').classList.add('hidden'); }
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-1. SERVICES. Service Provider agrees to perform software development services as directed by Client at Client's sole discretion.
+// ── Demo ─────────────────────────────────────────────────────────────────
+function loadDemo() {
+  document.getElementById('ct').value = `SERVICE AGREEMENT
 
-2. PAYMENT. Client shall pay $8,000/month. Payment due within 60 days of invoice. Client may withhold payment for any work deemed unsatisfactory at Client's sole discretion.
+This Service Agreement ("Agreement") is entered into as of January 1, 2025, between Acme Corp ("Client") and the undersigned ("Service Provider").
 
-3. INTELLECTUAL PROPERTY. All work product created by Service Provider, whether or not during working hours or using Client's resources, is the exclusive property of Client. Service Provider assigns all rights in perpetuity worldwide, including all pre-existing IP incorporated therein.
+1. SERVICES. Service Provider agrees to perform software development services as directed by Client at Client's sole discretion. Client may unilaterally change the scope of work at any time without additional compensation.
 
-4. NON-COMPETE. Service Provider agrees not to work for any competitor for 3 years after termination, within the United States.
+2. PAYMENT. Client shall pay $8,000/month. Payment due within 60 days of invoice. Client may withhold payment for any work deemed unsatisfactory at Client's sole discretion, without providing written notice or opportunity to cure.
 
-5. TERMINATION. Client may terminate with 2 days notice for any reason. Service Provider may only terminate with 90 days notice and Client approval.
+3. INTELLECTUAL PROPERTY. All work product created by Service Provider, whether during working hours or not, and whether using Client's resources or not, is the exclusive property of Client. Service Provider irrevocably assigns all rights in perpetuity worldwide, including all pre-existing IP incorporated therein, with no additional compensation.
 
-6. CONFIDENTIALITY. Service Provider shall not disclose any Client information for 10 years post-termination.
+4. NON-COMPETE. Service Provider agrees not to work for any company that competes with Client, directly or indirectly, for a period of 3 years after termination, within the United States.
 
-7. LIABILITY. Service Provider's total liability capped at $500. Client's liability is unlimited.
+5. NON-SOLICITATION. Service Provider may not solicit any Client employees or customers for a period of 5 years post-termination.
 
-8. MODIFICATION. Client may modify this Agreement at any time with 24 hours notice.`;
+6. TERMINATION. Client may terminate this Agreement with 2 business days notice for any reason or no reason. Service Provider may only terminate with 90 days written notice, subject to Client's written approval.
+
+7. CONFIDENTIALITY. Service Provider shall hold all Client information in strict confidence for a period of 10 years following termination.
+
+8. LIABILITY. Service Provider's total aggregate liability under this Agreement is capped at $500. Client's liability is unlimited.
+
+9. INDEMNIFICATION. Service Provider shall indemnify and hold harmless Client from any claims, damages, or losses, including attorney's fees, arising from Service Provider's work.
+
+10. MODIFICATION. Client reserves the right to modify this Agreement at any time upon 24 hours written notice to Service Provider.`;
   onInput();
 }
 
-// ── MAIN ANALYSIS ───────────────────────────────────────────────────
-async function analyze(){
-  const text=document.getElementById('ct').value.trim();
-  const key=getKey();
-  if(!key){showErr('Please enter your Groq API key above first. Get one free at console.groq.com');return}
-  if(text.length<100){showErr('Please paste a contract (at least 100 characters).');return}
+// ── Paywall ───────────────────────────────────────────────────────────────
+function showPaywall() {
+  document.getElementById('paywallOverlay').classList.remove('hidden');
+}
+function dismissPaywall() {
+  document.getElementById('paywallOverlay').classList.add('hidden');
+}
+function handleUpgrade() {
+  alert('Upgrade flow coming soon!\n\nFor now, email hello@contractscan.ai to get early Pro access.');
+}
+
+// ── Main analysis ─────────────────────────────────────────────────────────
+async function analyze() {
+  const text = document.getElementById('ct').value.trim();
+
+  if (text.length < 100) {
+    showErr('Please paste a contract (minimum 100 characters).');
+    return;
+  }
+  if (text.length > 30000) {
+    showErr('Contract too long. Please trim to under 30,000 characters.');
+    return;
+  }
+
+  // Check scan limit
+  if (scansUsed >= FREE_LIMIT) {
+    showPaywall();
+    return;
+  }
+
   hideErr();
-  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('analyzeBtn').disabled = true;
   show('scanView');
-  let i=0;
-  document.getElementById('scanMsg').textContent=MSGS[0];
-  scanTick=setInterval(()=>{i=(i+1)%MSGS.length;document.getElementById('scanMsg').textContent=MSGS[i]},1600);
 
-  const ctype=document.getElementById('ctype').value;
-  const persp=document.getElementById('persp').value;
+  // Animate scan messages
+  let msgIdx = 0;
+  const tick = setInterval(() => {
+    msgIdx = (msgIdx + 1) % MSGS.length;
+    document.getElementById('scanPhase').textContent = MSGS[msgIdx];
+  }, 1600);
 
-  const systemPrompt=`You are ContractScan AI, an expert legal contract risk analyzer. You must respond ONLY with a valid JSON object. No markdown, no code fences, no explanation — pure JSON only.
+  const ctype = document.getElementById('ctype').value;
+  const persp = document.getElementById('persp').value;
+  const perspText = persp === 'recipient'
+    ? 'the person signing / receiving this contract'
+    : 'the person issuing / drafting this contract';
+
+  const systemPrompt = `You are ContractScan AI, an expert legal contract risk analyzer. You must respond ONLY with a valid JSON object. No markdown, no code fences, no explanation — pure JSON only.
 
 Return this exact structure:
 {
-  "score": <integer 0-100, where 0=extremely risky, 100=very favorable>,
-  "verdict": "<short decisive verdict phrase>",
+  "score": <integer 0-100, where 0=extremely risky/unfavorable, 100=very favorable for the user>,
+  "verdict": "<short, decisive verdict phrase, max 8 words>",
   "summary": "<2-3 sentence plain-English summary of what this contract does and who it favors>",
   "contract_type": "<detected contract type>",
   "tags": ["<tag1>","<tag2>","<tag3>"],
   "flags": [
     {
       "severity": "high|medium|low|info",
-      "title": "<concise flag title>",
-      "clause": "<e.g. Section 3>",
-      "description": "<1-2 sentences explaining the risk>",
-      "action": "<what to request, remove, or change>"
+      "title": "<concise flag title, max 7 words>",
+      "clause": "<e.g. Section 3 or Clause 4>",
+      "description": "<1-2 sentences explaining the risk in plain English, no jargon>",
+      "action": "<specific, concrete thing to request, remove, or change>"
     }
   ],
-  "negotiate": ["<negotiation point as a concrete action>"]
+  "negotiate": ["<negotiation point as a specific, actionable sentence the user can use>"]
 }
 
-Give 4-7 flags and 4-5 negotiation points. Perspective: ${persp==='recipient'?'analyze risks for the person RECEIVING/signing this contract':'analyze risks from the perspective of the person SENDING/issuing this contract'}.`;
+Rules:
+- Give 5-7 flags covering real risks, not cosmetic issues
+- Give 4-5 negotiation points that are concrete and usable
+- Write everything in plain English — no legal jargon
+- Analyze from the perspective of ${perspText}
+- Score honestly: most one-sided contracts should score 20-45, balanced contracts 50-65, favorable ones 70-85`;
 
-  const userMsg=`Contract type: ${ctype==='auto'?'auto-detect':ctype}
+  const userMsg = `Contract type hint: ${ctype === 'auto' ? 'auto-detect the type' : ctype}
 
 CONTRACT TEXT:
-${text.substring(0,6000)}`;
+${text.substring(0, 8000)}`;
 
-  try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':'Bearer '+key
-      },
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        temperature:0.1,
-        max_tokens:1500,
-        messages:[
-          {role:'system',content:systemPrompt},
-          {role:'user',content:userMsg}
-        ]
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
       })
     });
-    const d=await res.json();
-    clearInterval(scanTick);
-    if(d.error){throw new Error(d.error.message||'Groq API error')}
-    const raw=d.choices[0].message.content;
-    const clean=raw.replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(clean);
+
+    clearInterval(tick);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error.message || 'API error');
+
+    const raw = data.content.map(b => b.text || '').join('');
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    // Update scan count
+    scansUsed++;
+    totalScans++;
+    localStorage.setItem('cs_scans', scansUsed);
+    localStorage.setItem('cs_total', totalScans);
+    updateScanCountDisplay();
+    updateTotalDisplay();
+
+    lastResult = parsed;
     render(parsed);
-  }catch(e){
-    clearInterval(scanTick);
+
+    // Show paywall after last free scan
+    if (scansUsed >= FREE_LIMIT) {
+      setTimeout(() => showPaywall(), 2000);
+    }
+
+  } catch(e) {
+    clearInterval(tick);
     show('inputView');
-    showErr('Analysis failed: '+(e.message||'Check your API key and try again.'));
-    document.getElementById('analyzeBtn').disabled=false;
+    document.getElementById('analyzeBtn').disabled = false;
+    showErr('Analysis failed: ' + (e.message || 'Please try again.'));
   }
 }
 
-// ── RENDER RESULTS ──────────────────────────────────────────────────
-function render(r){
-  const sc=Math.max(0,Math.min(100,r.score||50));
-  const cls=sc>=70?'safe':sc>=40?'warning':'danger';
-  const barColor=sc>=70?'#4a9e6a':sc>=40?'#d4922a':'#e05252';
-  const perspText=document.getElementById('persp').options[document.getElementById('persp').selectedIndex].text;
+// ── Render results ────────────────────────────────────────────────────────
+function render(r) {
+  const sc = Math.max(0, Math.min(100, r.score || 50));
+  const cls = sc >= 70 ? 'safe' : sc >= 40 ? 'warn' : 'danger';
+  const barColor = sc >= 70 ? 'var(--green)' : sc >= 40 ? 'var(--amber)' : 'var(--red)';
+  const perspLabel = document.getElementById('persp').options[document.getElementById('persp').selectedIndex].text;
 
-  document.getElementById('riskHeader').innerHTML=`
-    <div class="score-block">
-      <div class="score-eyebrow">Risk score</div>
-      <div class="score-num ${cls}">${sc}</div>
-      <div class="score-denom">out of 100</div>
-    </div>
-    <div class="verdict-block">
-      <div>
-        <div class="verdict-text">${escHtml(r.verdict||'')}</div>
-        <div class="verdict-sub">${escHtml(r.contract_type||'')} &nbsp;·&nbsp; ${escHtml(perspText)}</div>
-      </div>
-      <div>
-        <div class="risk-meter-labels"><span>HIGH RISK</span><span>NEUTRAL</span><span>FAVORABLE</span></div>
-        <div class="risk-meter-track"><div class="risk-meter-fill" id="meterFill" style="width:0%;background:${barColor}"></div></div>
-        <div class="tags-row">${(r.tags||[]).map(t=>`<span class="tag">${escHtml(t)}</span>`).join('')}</div>
-      </div>
-    </div>`;
+  // Score block
+  const scoreEl = document.getElementById('scoreNum');
+  scoreEl.textContent = sc;
+  scoreEl.className = 'score-num ' + cls;
 
-  setTimeout(()=>{const f=document.getElementById('meterFill');if(f)f.style.width=sc+'%'},100);
-  document.getElementById('summaryP').textContent=r.summary||'';
+  // Verdict
+  document.getElementById('verdictType').textContent = r.contract_type || 'Contract';
+  document.getElementById('verdictPersp').textContent = '· ' + perspLabel;
+  document.getElementById('verdictText').textContent = r.verdict || '';
 
-  const sevLabel={high:'High Risk',medium:'Medium Risk',low:'Low Risk',info:'Info'};
-  document.getElementById('flagsWrap').innerHTML=(r.flags||[]).map((f,i)=>`
-    <div class="flag ${escHtml(f.severity)}" style="animation-delay:${i*0.07}s">
+  // Tags
+  document.getElementById('verdictTags').innerHTML =
+    (r.tags || []).map(t => `<span class="vtag">${esc(t)}</span>`).join('');
+
+  // Meter — animate after frame
+  setTimeout(() => {
+    const fill = document.getElementById('meterFill');
+    fill.style.width = sc + '%';
+    fill.style.background = barColor;
+  }, 80);
+
+  // Summary
+  document.getElementById('summaryText').textContent = r.summary || '';
+
+  // Flags
+  const sevLabel = { high: 'High risk', medium: 'Medium risk', low: 'Low risk', info: 'Info' };
+  document.getElementById('flagsBadge').textContent = (r.flags || []).length + ' found';
+  document.getElementById('flagsList').innerHTML = (r.flags || []).map((f, i) => `
+    <div class="flag ${esc(f.severity)}" style="animation-delay:${i * .06}s">
       <div class="flag-top">
-        <span class="sev-pill">${escHtml(sevLabel[f.severity]||f.severity)}</span>
-        <span class="flag-title-text">${escHtml(f.title||'')}</span>
-        <span class="flag-clause">${escHtml(f.clause||'')}</span>
+        <span class="sev">${sevLabel[f.severity] || f.severity}</span>
+        <span class="flag-title">${esc(f.title || '')}</span>
+        <span class="flag-clause">${esc(f.clause || '')}</span>
       </div>
-      <div class="flag-desc">${escHtml(f.description||'')}</div>
-      ${f.action?`<div class="flag-action">&#9432; ${escHtml(f.action)}</div>`:''}
+      <div class="flag-desc">${esc(f.description || '')}</div>
+      ${f.action ? `<div class="flag-action">→ ${esc(f.action)}</div>` : ''}
     </div>`).join('');
 
-  document.getElementById('flagCount').textContent=`(${(r.flags||[]).length} found)`;
-  document.getElementById('negWrap').innerHTML=(r.negotiate||[]).map((n,i)=>`
-    <div class="neg-item" style="animation-delay:${i*0.06}s">
-      <div class="neg-num">${String(i+1).padStart(2,'0')}</div>
-      <div class="neg-text">${escHtml(n)}</div>
+  // Negotiation
+  document.getElementById('negList').innerHTML = (r.negotiate || []).map((n, i) => `
+    <div class="neg-item" style="animation-delay:${i * .05}s">
+      <div class="neg-num">${i + 1}</div>
+      <div class="neg-text">${esc(n)}</div>
     </div>`).join('');
 
   show('resultsView');
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function reset(){
-  show('inputView');
-  document.getElementById('ct').value='';
-  document.getElementById('charPill').textContent='0 chars';
-  document.getElementById('analyzeBtn').disabled=false;
+// ── Copy report ───────────────────────────────────────────────────────────
+function copyReport() {
+  if (!lastResult) return;
+  const r = lastResult;
+  const line = '─'.repeat(44);
+  let txt = `CONTRACTSCAN AI REPORT\n${line}\n\n`;
+  txt += `Risk Score:  ${r.score}/100\n`;
+  txt += `Verdict:     ${r.verdict}\n`;
+  txt += `Type:        ${r.contract_type}\n\n`;
+  txt += `SUMMARY\n${r.summary}\n\n`;
+  txt += `RISK FLAGS (${(r.flags||[]).length})\n${line}\n`;
+  (r.flags || []).forEach((f, i) => {
+    txt += `\n[${(f.severity||'').toUpperCase()}] ${f.title}  (${f.clause})\n`;
+    txt += `${f.description}\n`;
+    if (f.action) txt += `Action: ${f.action}\n`;
+  });
+  txt += `\nNEGOTIATION POINTS\n${line}\n`;
+  (r.negotiate || []).forEach((n, i) => { txt += `${i + 1}. ${n}\n`; });
+  txt += `\n${line}\nGenerated by ContractScan AI — not legal advice.`;
+
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector('.btn-act.gold');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied to clipboard';
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  });
 }
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function showErr(m){const b=document.getElementById('errBox');b.textContent=m;b.classList.remove('hidden')}
-function hideErr(){document.getElementById('errBox').classList.add('hidden')}
 </script>
 </body>
 </html>
