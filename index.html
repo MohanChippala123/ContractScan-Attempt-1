@@ -27,22 +27,6 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-si
 .nav-logo-mark span{color:var(--gold);font-style:italic}
 .nav-badge{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text3);border:1px solid var(--line2);padding:3px 8px;border-radius:2px;text-transform:uppercase}
 
-/* API KEY BANNER */
-.key-banner{background:var(--bg2);border:1px solid var(--amber-border);border-radius:6px;padding:14px 18px;margin-bottom:32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.key-banner-label{font-family:var(--mono);font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
-.key-input-wrap{flex:1;display:flex;gap:8px;min-width:200px}
-.key-input{flex:1;padding:7px 12px;background:var(--bg3);border:1px solid var(--line2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;transition:border-color .2s}
-.key-input:focus{border-color:var(--gold)}
-.key-input::placeholder{color:var(--text3)}
-.key-save{padding:7px 14px;background:var(--gold);border:none;border-radius:4px;color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:500;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:background .2s;white-space:nowrap}
-.key-save:hover{background:var(--gold2)}
-.key-status{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:2px}
-.key-status.ok{color:var(--green);background:var(--green-dim);border:1px solid var(--green-border)}
-.key-status.missing{color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber-border)}
-.key-hint{width:100%;font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.04em}
-.key-hint a{color:var(--gold);text-decoration:none}
-.key-hint a:hover{text-decoration:underline}
-
 .hero{margin-bottom:52px;animation:fadeUp .6s ease both}
 .hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .hero-eyebrow::before{content:'';display:block;width:24px;height:1px;background:var(--gold)}
@@ -170,19 +154,6 @@ select:hover,select:focus{border-color:var(--gold);color:var(--text)}
     <span class="nav-badge">Powered by Groq · Free</span>
   </nav>
 
-  <!-- API KEY BANNER -->
-  <div class="key-banner" id="keyBanner">
-    <span class="key-banner-label">Groq API Key</span>
-    <div class="key-input-wrap">
-      <input class="key-input" type="password" id="keyInput" placeholder="gskxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-      <button class="key-save" onclick="saveKey()">Save Key</button>
-    </div>
-    <span class="key-status missing" id="keyStatus">Not set</span>
-    <div class="key-hint">
-      Free API key → <a href="https://console.groq.com" target="_blank">console.groq.com</a> · Sign up · API Keys · Create Key · Paste above
-    </div>
-  </div>
-
   <div class="hero">
     <div class="hero-eyebrow">AI-Powered Legal Risk Analysis</div>
     <h1 class="hero-title">Know what you're<br>signing <em>before</em> you sign it.</h1>
@@ -288,30 +259,9 @@ select:hover,select:focus{border-color:var(--gold);color:var(--text)}
 
 </div>
 <script>
-// ── API KEY MANAGEMENT ──────────────────────────────────────────────
-function saveKey(){
-  const k=document.getElementById('keyInput').value.trim();
-  if(!k){showErr('Please enter a Groq API key.');return}
-  localStorage.setItem('groq_key',k);
-  updateKeyStatus(k);
-}
-function updateKeyStatus(k){
-  const s=document.getElementById('keyStatus');
-  if(k){s.textContent='Key saved';s.className='key-status ok'}
-  else{s.textContent='Not set';s.className='key-status missing'}
-}
-function getKey(){return localStorage.getItem('groq_key')||''}
-
-window.addEventListener('load',()=>{
-  const k=getKey();
-  if(k){document.getElementById('keyInput').value=k;updateKeyStatus(k)}
-});
-
-// ── SCAN MESSAGES ───────────────────────────────────────────────────
 const MSGS=['Reading contract structure…','Identifying key clauses…','Scoring risk factors…','Detecting unfavorable terms…','Preparing negotiation tips…','Finalizing report…'];
 let scanTick;
 
-// ── FILE / TEXT INPUT ───────────────────────────────────────────────
 function onInput(){
   document.getElementById('charPill').textContent=document.getElementById('ct').value.length.toLocaleString()+' chars';
 }
@@ -345,11 +295,8 @@ This Service Agreement is entered into as of January 1, 2025, between Acme Corp 
   onInput();
 }
 
-// ── MAIN ANALYSIS ───────────────────────────────────────────────────
 async function analyze(){
   const text=document.getElementById('ct').value.trim();
-  const key=getKey();
-  if(!key){showErr('Please enter your Groq API key above first. Get one free at console.groq.com');return}
   if(text.length<100){showErr('Please paste a contract (at least 100 characters).');return}
   hideErr();
   document.getElementById('analyzeBtn').disabled=true;
@@ -358,70 +305,28 @@ async function analyze(){
   document.getElementById('scanMsg').textContent=MSGS[0];
   scanTick=setInterval(()=>{i=(i+1)%MSGS.length;document.getElementById('scanMsg').textContent=MSGS[i]},1600);
 
-  const ctype=document.getElementById('ctype').value;
-  const persp=document.getElementById('persp').value;
-
-  const systemPrompt=`You are ContractScan AI, an expert legal contract risk analyzer. You must respond ONLY with a valid JSON object. No markdown, no code fences, no explanation — pure JSON only.
-
-Return this exact structure:
-{
-  "score": <integer 0-100, where 0=extremely risky, 100=very favorable>,
-  "verdict": "<short decisive verdict phrase>",
-  "summary": "<2-3 sentence plain-English summary of what this contract does and who it favors>",
-  "contract_type": "<detected contract type>",
-  "tags": ["<tag1>","<tag2>","<tag3>"],
-  "flags": [
-    {
-      "severity": "high|medium|low|info",
-      "title": "<concise flag title>",
-      "clause": "<e.g. Section 3>",
-      "description": "<1-2 sentences explaining the risk>",
-      "action": "<what to request, remove, or change>"
-    }
-  ],
-  "negotiate": ["<negotiation point as a concrete action>"]
-}
-
-Give 4-7 flags and 4-5 negotiation points. Perspective: ${persp==='recipient'?'analyze risks for the person RECEIVING/signing this contract':'analyze risks from the perspective of the person SENDING/issuing this contract'}.`;
-
-  const userMsg=`Contract type: ${ctype==='auto'?'auto-detect':ctype}
-
-CONTRACT TEXT:
-${text.substring(0,6000)}`;
-
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    const res=await fetch('/api/analyze',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':'Bearer '+key
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        temperature:0.1,
-        max_tokens:1500,
-        messages:[
-          {role:'system',content:systemPrompt},
-          {role:'user',content:userMsg}
-        ]
+        text,
+        contractType:document.getElementById('ctype').value,
+        perspective:document.getElementById('persp').value
       })
     });
-    const d=await res.json();
+    const d=await res.json().catch(()=>null);
     clearInterval(scanTick);
-    if(d.error){throw new Error(d.error.message||'Groq API error')}
-    const raw=d.choices[0].message.content;
-    const clean=raw.replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(clean);
-    render(parsed);
+    if(!res.ok){throw new Error((d&&d.error)||'Analysis service error')}
+    render(d);
   }catch(e){
     clearInterval(scanTick);
     show('inputView');
-    showErr('Analysis failed: '+(e.message||'Check your API key and try again.'));
+    showErr('Analysis failed: '+(e.message||'Please try again.'));
     document.getElementById('analyzeBtn').disabled=false;
   }
 }
 
-// ── RENDER RESULTS ──────────────────────────────────────────────────
 function render(r){
   const sc=Math.max(0,Math.min(100,r.score||50));
   const cls=sc>=70?'safe':sc>=40?'warning':'danger';
